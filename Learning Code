@@ -1,0 +1,83 @@
+clc;
+clear;
+close all;
+
+%% =====================================================
+%  GENERALIZED WIND ENERGY SYSTEM (LEARNING MODEL)
+%  =====================================================
+%  This code is written for educational purposes to
+%  understand wind energy system behavior using MATLAB.
+%% =====================================================
+
+%% 1. USER-DEFINED PARAMETERS (EASY TO MODIFY)
+
+airDensity   = 1.225;      % Air density (kg/m^3)
+bladeRadius  = 40;         % Turbine blade radius (m)
+Cp           = 0.40;       % Power coefficient (Cp < 0.593)
+
+cutInSpeed   = 4;          % Cut-in wind speed (m/s)
+ratedSpeed   = 12;         % Rated wind speed (m/s)
+cutOutSpeed  = 25;         % Cut-out wind speed (m/s)
+
+windMin      = 0;          % Minimum wind speed (m/s)
+windMax      = 25;         % Maximum wind speed (m/s)
+windStep     = 0.5;        % Wind speed step size (m/s)
+
+%% 2. DERIVED PARAMETERS
+
+sweptArea = pi * bladeRadius^2;      % Swept area (m^2)
+windSpeed = windMin:windStep:windMax;
+
+%% 3. WIND POWER CALCULATION
+
+% Available wind power
+P_wind = 0.5 * airDensity .* sweptArea .* windSpeed.^3;
+
+% Ideal turbine power
+P_ideal = Cp .* P_wind;
+
+%% 4. PRACTICAL WIND TURBINE OPERATION
+
+ratedPower = max(P_ideal);
+P_actual = zeros(size(windSpeed));
+
+for i = 1:length(windSpeed)
+    if windSpeed(i) < cutInSpeed
+        P_actual(i) = 0;
+    elseif windSpeed(i) >= cutInSpeed && windSpeed(i) <= ratedSpeed
+        P_actual(i) = P_ideal(i);
+    elseif windSpeed(i) > ratedSpeed && windSpeed(i) <= cutOutSpeed
+        P_actual(i) = ratedPower;
+    else
+        P_actual(i) = 0;
+    end
+end
+
+%% 5. UNIT CONVERSION (W → MW)
+
+P_wind_MW   = P_wind   / 1e6;
+P_ideal_MW  = P_ideal  / 1e6;
+P_actual_MW = P_actual / 1e6;
+
+%% 6. PLOTS
+
+figure;
+plot(windSpeed, P_wind_MW, '--k', 'LineWidth', 1.5); hold on;
+plot(windSpeed, P_ideal_MW, 'b', 'LineWidth', 2);
+plot(windSpeed, P_actual_MW, 'r', 'LineWidth', 2);
+grid on;
+
+xlabel('Wind Speed (m/s)');
+ylabel('Power (MW)');
+title('Wind Energy System Power Curves');
+legend('Available Wind Power', 'Ideal Turbine Power', 'Practical Output');
+
+%% 7. DISPLAY RESULTS
+
+fprintf('\n--- Wind Energy System Simulation (Learning Model) ---\n');
+fprintf('Blade Radius       : %.1f m\n', bladeRadius);
+fprintf('Power Coefficient  : %.2f\n', Cp);
+fprintf('Rated Power        : %.2f MW\n', ratedPower/1e6);
+fprintf('Cut-in Speed       : %.1f m/s\n', cutInSpeed);
+fprintf('Rated Speed        : %.1f m/s\n', ratedSpeed);
+fprintf('Cut-out Speed      : %.1f m/s\n', cutOutSpeed);
